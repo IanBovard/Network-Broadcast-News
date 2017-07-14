@@ -1,21 +1,29 @@
 /*jshint esversion:6*/
 const net = require('net');
-let client = [];
+const client = [];
 const clientServer = net.createServer((socket) => {
   process.stdout.write('User connected to chat\/');
-
+  client.push(socket);
   socket.on('data', (data) => {
-    client.forEach((user)=>{
-      if (user === socket){
-        client.name = data;
-        process.stdout.write(`${client.name}`);
-      }else{
-        user.write(`${client.name} >> ${data.toString()}`);
-      }
+    if (socket.hasOwnProperty('name')){
+      client.forEach((user)=>{
+        user.write(`>${socket.name}${data.toString()}`);
+      });
+      return;
+    }
+    const isAvail = client.every((user)=>{
+      console.log(`does ${data.toString()} == ${user.name}?`);
+      return data.toString().toUpperCase() !== user.name;
     });
+    if (isAvail){
+      socket.name = data.toString().toUpperCase();
+    }else{
+      socket.write('Name not available. Enter a new Name: ');
+    }
+    console.log(isAvail);
   });
   socket.on('close', () =>{
-    process.stdout.write(' client has disconnected');
+    process.stdout.write(`>>>${socket.name}has disconnected!`);
   });
 });
 
